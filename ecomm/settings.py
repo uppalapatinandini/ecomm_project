@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ecommapp',
     'adminapp',
+    'mainApp',
 ]
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'home'

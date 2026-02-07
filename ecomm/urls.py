@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('ecommapp.urls')),
     path('admin-panel/', include('adminapp.urls')),
+    path('main/', include('mainApp.urls')),
 ]
 
 
