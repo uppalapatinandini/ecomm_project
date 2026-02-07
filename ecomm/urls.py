@@ -24,6 +24,11 @@ urlpatterns = [
     path('', include('ecommapp.urls')),
     path('admin-panel/', include('adminapp.urls')),
     path('main/', include('mainApp.urls')),
+    
+    # API endpoints
+    path('api/vendor/', include('ecommapp.api_urls')),
+    path('api/admin/', include('mainApp.api_urls')),
+    path('api/auth/', include('rest_framework.urls')),
 ]
 
 
