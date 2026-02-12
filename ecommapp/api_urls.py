@@ -17,7 +17,7 @@ urlpatterns = [
     
     # Vendor endpoints
     path('vendor/profile/', VendorProfileDetailView.as_view(), name='vendor_profile'),
-    path('vendor/details/', VendorDetailsView.as_view(), name='vendor_details'),
+    path('vendor/details/', VendorDetailsView.as_view(), name='api_vendor_details'),
     path('vendor/dashboard/', VendorDashboardView.as_view(), name='vendor_dashboard'),
     path('vendor/approval-status/', ApprovalStatusView.as_view(), name='approval_status'),
     

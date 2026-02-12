@@ -23,17 +23,17 @@ def register_view(request):
 
         # Validation
         if password != confirm_password:
-            return render(request, 'ecommapp/register.html', {
+            return render(request, 'register.html', {
                 'error': 'Passwords do not match'
             })
 
         if User.objects.filter(username=username).exists():
-            return render(request, 'ecommapp/register.html', {
+            return render(request, 'register.html', {
                 'error': 'Username already exists'
             })
 
         if User.objects.filter(email=email).exists():
-            return render(request, 'ecommapp/register.html', {
+            return render(request, 'register.html', {
                 'error': 'Email already exists'
             })
 
@@ -57,13 +57,13 @@ def register_view(request):
                 recipient_list=[email],
             )
         except Exception as e:
-            return render(request, 'ecommapp/register.html', {
+            return render(request, 'register.html', {
                 'error': f'Error sending OTP: {str(e)}'
             })
 
         return redirect('verify_otp')
 
-    return render(request, 'ecommapp/register.html')
+    return render(request, 'register.html')
 
 
 def verify_otp_view(request):
@@ -73,7 +73,7 @@ def verify_otp_view(request):
         reg_data = request.session.get('reg_data')
 
         if not reg_data:
-            return render(request, 'ecommapp/verify_otp.html', {
+            return render(request, 'verify_otp.html', {
                 'error': 'Session expired. Please register again.'
             })
 
@@ -82,17 +82,21 @@ def verify_otp_view(request):
             user = User.objects.create_user(
                 username=reg_data['username'],
                 email=reg_data['email'],
-                password=reg_data['password']
+                password=reg_data['password'],
+
             )
             request.session['vendor_user_id'] = user.id
             del request.session['reg_data']
+            # if request.accessed_from_mobile:
+            #     return JsonResponse({'success': True, 'message': 'OTP verified. Please complete your vendor details.'})
+
             return redirect('vendor_details')
         else:
-            return render(request, 'ecommapp/verify_otp.html', {
+            return render(request, 'verify_otp.html', {
                 'error': 'Invalid OTP. Please try again.'
             })
 
-    return render(request, 'ecommapp/verify_otp.html')
+    return render(request, 'verify_otp.html')
 
 
 def vendor_details_view(request):
@@ -120,7 +124,7 @@ def vendor_details_view(request):
             del request.session['vendor_user_id']
         return redirect('login')
 
-    return render(request, 'ecommapp/vendor_details.html')
+    return render(request, 'vendor_details.html')
 
 
 def login_view(request):
@@ -135,11 +139,11 @@ def login_view(request):
             login(request, user)
             return redirect('vendor_home')
         else:
-            return render(request, 'ecommapp/login.html', {
+            return render(request, 'login.html', {
                 'error': 'Invalid credentials'
             })
 
-    return render(request, 'ecommapp/login.html')
+    return render(request, 'login.html')
 
 
 def logout_view(request):
@@ -166,13 +170,13 @@ def vendor_home_view(request):
 
     # Check if vendor is blocked
     if vendor.is_blocked:
-        return render(request, 'ecommapp/vendor_blocked.html', {
+        return render(request, 'vendor_blocked.html', {
             'vendor': vendor
         })
 
     # If not approved, show status page
     if vendor.approval_status != 'approved':
-        return render(request, 'ecommapp/approval_status.html', {
+        return render(request, 'approval_status.html', {
             'vendor': vendor,
             'status': vendor.approval_status,
             'rejection_reason': vendor.rejection_reason
@@ -180,7 +184,7 @@ def vendor_home_view(request):
 
     # If approved, show products dashboard
     products = vendor.products.all()
-    return render(request, 'ecommapp/vendor_dashboard.html', {
+    return render(request, 'vendor_dashboard.html', {
         'vendor': vendor,
         'products': products
     })
@@ -200,7 +204,7 @@ def approval_status_view(request):
     if vendor.approval_status == 'approved':
         return redirect('vendor_home')
 
-    return render(request, 'ecommapp/approval_status.html', {
+    return render(request, 'approval_status.html', {
         'vendor': vendor,
         'status': vendor.approval_status,
         'rejection_reason': vendor.rejection_reason
@@ -235,7 +239,7 @@ def add_product_view(request):
         )
         return redirect('vendor_home')
 
-    return render(request, 'ecommapp/add_product.html', {
+    return render(request, 'add_product.html', {
         'vendor': vendor
     })
 
@@ -263,7 +267,7 @@ def edit_product_view(request, product_id):
         product.save()
         return redirect('vendor_home')
 
-    return render(request, 'ecommapp/edit_product.html', {
+    return render(request, 'edit_product.html', {
         'vendor': vendor,
         'product': product
     })
@@ -302,5 +306,5 @@ def view_product_view(request, product_id):
         'blocked_reason': product.blocked_reason
     }
 
-    return render(request, 'ecommapp/product_detail.html', context)
+    return render(request, 'product_detail.html', context)
 

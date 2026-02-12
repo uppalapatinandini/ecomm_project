@@ -156,7 +156,7 @@ The following are expected for development mode:
 ```
 
 **System Admin Routes (adminapp)**
-```
+ ```
 /admin-panel/          → Dashboard
 /admin-panel/vendors/  → Vendor list
 /admin-panel/products/ → Product list

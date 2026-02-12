@@ -28,9 +28,18 @@ class VendorProfile(models.Model):
     shop_description = models.TextField()
     address = models.TextField()
     business_type = models.CharField(max_length=20, choices=BUSINESS_CHOICES)
-    id_type = models.CharField(max_length=10, choices=ID_PROOF_CHOICES)
-    id_number = models.CharField(max_length=50)
-    id_proof_file = models.FileField(upload_to='vendor_docs/')
+    
+    # Legacy fields (kept for backward compatibility)
+    id_type = models.CharField(max_length=10, choices=ID_PROOF_CHOICES, blank=True, null=True)
+    id_number = models.CharField(max_length=50, blank=True, null=True)
+    id_proof_file = models.FileField(upload_to='vendor_docs/', blank=True, null=True)
+    
+    # New GST/PAN fields
+    gst_number = models.CharField(max_length=15, blank=True, null=True, help_text="15-digit GST number")
+    pan_number = models.CharField(max_length=10, blank=True, null=True, help_text="10-character PAN number")
+    pan_name = models.CharField(max_length=100, blank=True, null=True, help_text="Name as per PAN card")
+    pan_card_file = models.FileField(upload_to='pan_cards/', blank=True, null=True, help_text="Upload PAN card image")
+    
     approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending')
     rejection_reason = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(default=timezone.now)

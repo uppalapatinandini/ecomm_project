@@ -74,39 +74,66 @@ class LoginView(generics.GenericAPIView):
         }, status=status.HTTP_200_OK)
 
 
-class VendorDetailsView(generics.CreateAPIView):
-    """Submit vendor shop details"""
-    permission_classes = [IsAuthenticated]
+class VendorDetailsView(generics.GenericAPIView):
+    """Submit vendor shop details - Returns HTML page"""
+    permission_classes = [AllowAny]  # Allow access for new vendors during registration
     serializer_class = VendorRegistrationSerializer
     
+    def get(self, request, *args, **kwargs):
+        """Render HTML form for vendor details"""
+        from django.shortcuts import render, redirect
+        
+        # Check if user is coming from registration (has vendor_user_id in session)
+        vendor_user_id = request.session.get('vendor_user_id')
+        if not vendor_user_id:
+            # If authenticated via API token, use that user
+            if request.user.is_authenticated:
+                return render(request, 'ecommapp/vendor_details.html')
+            else:
+                return redirect('register')
+        
+        return render(request, 'ecommapp/vendor_details.html')
+    
     def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        """Process vendor details form submission"""
+        from django.shortcuts import redirect, render, get_object_or_404
+        
+        # Get user from session or from authenticated request
+        vendor_user_id = request.session.get('vendor_user_id')
+        if vendor_user_id:
+            user = get_object_or_404(User, id=vendor_user_id)
+        elif request.user.is_authenticated:
+            user = request.user
+        else:
+            return redirect('register')
         
         # Check if vendor profile already exists
-        vendor = VendorProfile.objects.filter(user=request.user).first()
+        vendor = VendorProfile.objects.filter(user=user).first()
         
         if vendor:
-            return Response({
+            return render(request, 'ecommapp/vendor_details.html', {
                 'error': 'Vendor profile already exists'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            })
         
-        # Create vendor profile
-        vendor = VendorProfile.objects.create(
-            user=request.user,
-            shop_name=serializer.validated_data['shop_name'],
-            shop_description=serializer.validated_data['shop_description'],
-            address=serializer.validated_data['address'],
-            business_type=serializer.validated_data['business_type'],
-            id_type=serializer.validated_data['id_type'],
-            id_number=serializer.validated_data['id_number'],
-            id_proof_file=serializer.validated_data['id_proof_file']
+        # Create vendor profile from form data
+        VendorProfile.objects.create(
+            user=user,
+            shop_name=request.POST.get('shop_name'),
+            shop_description=request.POST.get('shop_description'),
+            address=request.POST.get('address'),
+            business_type=request.POST.get('business_type'),
+            id_type=request.POST.get('id_type'),
+            id_number=request.POST.get('id_number'),
+            id_proof_file=request.FILES.get('id_proof_file'),
+            approval_status='pending'
         )
         
-        return Response({
-            'message': 'Vendor profile submitted for approval',
-            'vendor': VendorProfileSerializer(vendor).data
-        }, status=status.HTTP_201_CREATED)
+        # Clear session data
+        if 'vendor_user_id' in request.session:
+            del request.session['vendor_user_id']
+        
+        # Redirect to login after successful submission
+        return redirect('login')
 
 
 class VendorDashboardView(generics.RetrieveAPIView):
